@@ -1,6 +1,6 @@
 langchain-community
 streamlit
-langchain_huggingface
+langchain_google_genai
 duckduckgo-search
 fastapi
 uvicorn
