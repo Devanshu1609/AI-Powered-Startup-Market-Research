@@ -4,7 +4,7 @@ A comprehensive AI-powered platform that validates startup ideas through Idea Un
 
 ## Features
 
-- **AI-Powered Market Analysis**: Deep market insights using a Hugging Face endpoint model (configurable; default `openai/gpt-oss-120b`)
+- **AI-Powered Market Analysis**: Deep market insights
 - **Competitive Intelligence**: Automated competitor research and positioning analysis  
 - **Risk Assessment**: Multi-dimensional risk evaluation across market, technical, operational, regulatory, and financial factors
 - **SWOT Analysis**: Actionable SWOT( Strengths , weaknesses, opportunities, Threats) analysis that product teams and founders can act on.
@@ -54,8 +54,7 @@ Follows a modular microservices architecture with clear separation of concerns:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/Nirikshan95/ThinkScribe.git
-cd ThinkScribe
+git clone https://github.com/Devanshu1609/AI-Powered-Startup-Market-Research
 ```
 
 ### 2. Set Up Python Environment
@@ -104,7 +103,7 @@ npm run dev
 uvicorn main:app --host 0.0.0.0 --port 8000
 
 # Frontend (in separate terminal)
-streamlit run app.py --server.port 8501
+npm run dev
 ```
 
 ### 3. Access the Application
