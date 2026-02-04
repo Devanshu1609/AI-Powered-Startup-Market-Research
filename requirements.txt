@@ -9,3 +9,4 @@ langchain-core
 pydantic
 python-dotenv
 requests
+google-generativeai
