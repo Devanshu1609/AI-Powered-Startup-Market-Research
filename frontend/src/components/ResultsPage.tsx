@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { ArrowLeft, FileText, BarChart3, Users, AlertTriangle, Grid3x3, Lightbulb, Copy, Check } from 'lucide-react';
 import { ValidationResult } from '../types/validation';
 import { MarkdownRenderer } from './MarkdownRenderer';
@@ -9,7 +9,7 @@ interface ResultsPageProps {
   error?: string | null;
 }
 
-type Section = 'idea' | 'market' | 'competition' | 'risk' | 'swot' | 'recommendations' | 'advice';
+type Section = 'idea' | 'market' | 'competition' | 'risk' | 'swot' | 'recommendations';
 
 interface NavItem {
   id: Section;
@@ -19,8 +19,28 @@ interface NavItem {
 }
 
 export default function ResultsPage({ data, onBack, error }: ResultsPageProps) {
-  const [activeSection, setActiveSection] = useState<Section>('idea');
+  // ✅ Load saved section from localStorage
+  const [activeSection, setActiveSection] = useState<Section>(() => {
+    const saved = localStorage.getItem('activeSection');
+    return (saved as Section) || 'idea';
+  });
+
   const [copied, setCopied] = useState(false);
+
+  // ✅ Ref for scroll container
+  const contentRef = useRef<HTMLDivElement | null>(null);
+
+  // ✅ Save section on change
+  useEffect(() => {
+    localStorage.setItem('activeSection', activeSection);
+  }, [activeSection]);
+
+  // ✅ Scroll to top when section changes
+  useEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [activeSection]);
 
   const navItems: NavItem[] = useMemo(
     () => [
@@ -47,7 +67,11 @@ export default function ResultsPage({ data, onBack, error }: ResultsPageProps) {
       case 'swot':
         return { title: 'SWOT Analysis', content: data.swot_analysis, section: 'default' as const };
       case 'recommendations':
-        return { title: 'Advisor Recommendations', content: `**Recommendation:** ${data.advisor_recommendations}\n\n${data.advice}`, section: 'default' as const };
+        return {
+          title: 'Advisor Recommendations',
+          content: `**Recommendation:** ${data.advisor_recommendations}\n\n${data.advice}`,
+          section: 'default' as const,
+        };
       default:
         return { title: 'Idea Analysis', content: data.idea_analysis, section: 'default' as const };
     }
@@ -64,49 +88,34 @@ export default function ResultsPage({ data, onBack, error }: ResultsPageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* HEADER */}
       <header className="sticky top-0 z-40 bg-white border-b border-gray-200 backdrop-blur-xl">
-        <div className="max-w-full px-6 py-4">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={onBack}
-              className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span className="font-medium">Back</span>
-            </button>
-            <div className="text-center">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                Startup Validation Report
-              </h1>
-              <p className="text-sm text-gray-600 mt-1">Comprehensive analysis and insights</p>
-            </div>
-            <div className="w-24"></div>
+        <div className="max-w-full px-6 py-4 flex items-center justify-between">
+          <button onClick={onBack} className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <ArrowLeft className="w-5 h-5" />
+            <span className="font-medium">Back</span>
+          </button>
+          <div className="text-center">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+              Startup Validation Report
+            </h1>
+            <p className="text-sm text-gray-600 mt-1">Comprehensive analysis and insights</p>
           </div>
+          <div className="w-24" />
         </div>
       </header>
 
       <div className="flex flex-col lg:flex-row">
+        {/* SIDEBAR */}
         <aside className="w-full lg:w-72 bg-white border-r border-gray-200 overflow-y-auto sticky top-20 lg:h-screen lg:top-0">
-          <div className="p-6">
+          <div className="p-4">
             <div className="mb-8">
               <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Startup Idea</h2>
               <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
                 <p className="text-sm text-gray-700 leading-relaxed mb-3">{data.startup_idea}</p>
-                <button
-                  onClick={handleCopyIdea}
-                  className="flex items-center gap-2 text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-3.5 h-3.5" />
-                      <span>Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copy Idea</span>
-                    </>
-                  )}
+                <button onClick={handleCopyIdea} className="flex items-center gap-2 text-xs font-medium text-blue-600">
+                  {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copied ? 'Copied!' : 'Copy Idea'}</span>
                 </button>
               </div>
             </div>
@@ -117,15 +126,14 @@ export default function ResultsPage({ data, onBack, error }: ResultsPageProps) {
                 <button
                   key={item.id}
                   onClick={() => setActiveSection(item.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     activeSection === item.id
                       ? `bg-gradient-to-r ${item.color} text-white shadow-md`
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  <div className="flex-shrink-0">{item.icon}</div>
+                  {item.icon}
                   <span className="flex-1 text-left text-sm font-medium">{item.label}</span>
-                  {activeSection === item.id && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
                 </button>
               ))}
             </nav>
@@ -138,8 +146,9 @@ export default function ResultsPage({ data, onBack, error }: ResultsPageProps) {
           </div>
         </aside>
 
-        <main className="flex-1 overflow-auto">
-          <div className="max-w-4xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
+        {/* MAIN CONTENT */}
+        <main ref={contentRef} className="flex-1 overflow-auto">
+          <div className="max-w-6xl mx-auto px-6 lg:px-10 py-12 lg:py-16">
             <div className="mb-12">
               <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r ${activeNav?.color} text-white text-xs font-semibold mb-4`}>
                 {activeNav?.icon}
@@ -147,7 +156,6 @@ export default function ResultsPage({ data, onBack, error }: ResultsPageProps) {
               </div>
 
               <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">{currentContent.title}</h1>
-
               <div className="h-1 w-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
             </div>
 
@@ -155,27 +163,6 @@ export default function ResultsPage({ data, onBack, error }: ResultsPageProps) {
               <article className="text-gray-700">
                 <MarkdownRenderer content={currentContent.content} section={currentContent.section} />
               </article>
-            </div>
-
-            <div className="mt-16 pt-12 border-t border-gray-200">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {navItems.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveSection(item.id)}
-                    className={`p-4 rounded-lg border-2 transition-all duration-200 ${
-                      activeSection === item.id
-                        ? `border-gray-900 bg-gray-50`
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className={`text-2xl mb-2 ${activeSection === item.id ? 'opacity-100' : 'opacity-50'}`}>
-                      {item.icon}
-                    </div>
-                    <span className="text-xs font-medium text-gray-900">{item.label}</span>
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
         </main>

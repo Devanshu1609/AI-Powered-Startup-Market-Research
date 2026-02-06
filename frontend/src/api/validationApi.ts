@@ -1,6 +1,6 @@
 import { ValidationResult } from '../types/validation';
 
-const API_URL = 'http://localhost:8000';
+const API_URL = 'https://ai-powered-startup-market-research.onrender.com';
 
 export const fetchValidationResult = async (startupIdea: string): Promise<ValidationResult> => {
   try {

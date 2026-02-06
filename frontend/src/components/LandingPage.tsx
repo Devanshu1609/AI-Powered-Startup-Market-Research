@@ -14,7 +14,7 @@ export default function LandingPage({ onValidate }: LandingPageProps) {
   const [ideaInput, setIdeaInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isVisible, setIsVisible] = useState<AnimationState>({});
-  const refs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const refs = useRef<{ [key: string]: HTMLDivElement | HTMLButtonElement | null }>({});
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -47,14 +47,14 @@ export default function LandingPage({ onValidate }: LandingPageProps) {
     if (!ideaInput.trim()) return;
 
     setIsLoading(true);
-    try {
-      onValidate(ideaInput);
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  try {
+    await onValidate(ideaInput); // ✅ WAIT here
+  } catch (error) {
+    console.error('Error:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-white">
@@ -165,7 +165,11 @@ export default function LandingPage({ onValidate }: LandingPageProps) {
                 >
                   {isLoading ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <div className="flex gap-1 items-center">
+                        <div className="w-2 h-6 bg-white rounded-full animate-wave-1"></div>
+                        <div className="w-2 h-6 bg-white rounded-full animate-wave-2"></div>
+                        <div className="w-2 h-6 bg-white rounded-full animate-wave-3"></div>
+                      </div>
                       Analyzing...
                     </>
                   ) : (
@@ -178,7 +182,7 @@ export default function LandingPage({ onValidate }: LandingPageProps) {
         </div>
       )}
 
-      <div className="max-w-8xl mx-auto px-20 py-16">
+      <div className="max-w-6xl mx-auto px-8 py-16">
         <div
           ref={(el) => {
             if (el) refs.current['section-tag'] = el;

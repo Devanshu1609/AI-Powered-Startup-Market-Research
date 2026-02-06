@@ -1,204 +1,227 @@
-import React from 'react';
-import ReactMarkdown from 'react-markdown';
-import { ChevronRight, CheckCircle2, AlertCircle } from 'lucide-react';
+import React from "react";
+import ReactMarkdown from "react-markdown";
+import {
+  ChevronRight,
+  AlertCircle,
+  Lightbulb,
+  Shield,
+  Rocket,
+  Award,
+  Flame,
+  BarChart3,
+  Target,
+  Users,
+  TrendingUp,
+  Briefcase,
+} from "lucide-react";
+import remarkGfm from "remark-gfm";
 
-type SectionType = 'market' | 'competition' | 'risk' | 'default';
+type SectionType = "market" | "competition" | "risk" | "default";
 
 interface MarkdownRendererProps {
   content: string;
   section?: SectionType;
 }
 
-const sectionColors: Record<SectionType, { header: string; accent: string; bg: string; border: string; icon: string }> = {
+const sectionColors: Record<
+  SectionType,
+  { header: string; accent: string; bg: string; border: string; icon: string }
+> = {
   market: {
-    header: 'text-blue-900',
-    accent: 'text-blue-600',
-    bg: 'bg-blue-50',
-    border: 'border-blue-200',
-    icon: 'text-blue-600',
+    header: "text-blue-900",
+    accent: "text-blue-600",
+    bg: "bg-blue-50",
+    border: "border-blue-200",
+    icon: "text-blue-600",
   },
   competition: {
-    header: 'text-emerald-900',
-    accent: 'text-emerald-600',
-    bg: 'bg-emerald-50',
-    border: 'border-emerald-200',
-    icon: 'text-emerald-600',
+    header: "text-emerald-900",
+    accent: "text-emerald-600",
+    bg: "bg-emerald-50",
+    border: "border-emerald-200",
+    icon: "text-emerald-600",
   },
   risk: {
-    header: 'text-amber-900',
-    accent: 'text-amber-600',
-    bg: 'bg-amber-50',
-    border: 'border-amber-200',
-    icon: 'text-amber-600',
+    header: "text-amber-900",
+    accent: "text-amber-600",
+    bg: "bg-amber-50",
+    border: "border-amber-200",
+    icon: "text-amber-600",
   },
   default: {
-    header: 'text-gray-900',
-    accent: 'text-gray-600',
-    bg: 'bg-gray-50',
-    border: 'border-gray-200',
-    icon: 'text-gray-600',
+    header: "text-gray-900",
+    accent: "text-gray-600",
+    bg: "bg-gray-50",
+    border: "border-gray-200",
+    icon: "text-gray-600",
   },
 };
 
 const extractText = (children: any): string => {
-  if (typeof children === 'string') return children;
-  if (Array.isArray(children)) {
-    return children.map(extractText).join('');
-  }
-  if (children?.props?.children) {
-    return extractText(children.props.children);
-  }
-  return '';
+  if (typeof children === "string") return children;
+  if (Array.isArray(children)) return children.map(extractText).join("");
+  if (children?.props?.children) return extractText(children.props.children);
+  return "";
 };
 
-export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, section = 'default' }) => {
+export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
+  content,
+  section = "default",
+}) => {
   const colors = sectionColors[section];
 
   const getListItemStyle = (children: any) => {
-    const text = extractText(children);
+    const text = extractText(children).toLowerCase();
+    if (text.includes("risk") || text.includes("challenge")) return "warning";
+    if (text.includes("opportunity") || text.includes("growth")) return "success";
+    if (text.includes("critical") || text.includes("threat")) return "error";
+    return "default";
+  };
 
-    if (text.includes('Risk') || text.includes('Challenge') || text.includes('Issue')) {
-      return 'warning';
-    }
-    if (text.includes('Opportunity') || text.includes('Advantage') || text.includes('Growth')) {
-      return 'success';
-    }
-    if (text.includes('Threat') || text.includes('Critical') || text.includes('Severe')) {
-      return 'error';
-    }
-    return 'default';
+  const getIcon = (children: any) => {
+    const text = extractText(children).toLowerCase();
+    if (text.includes("feature")) return <Rocket className="w-5 h-5" />;
+    if (text.includes("strength") || text.includes("advantage"))
+      return <Award className="w-5 h-5" />;
+    if (text.includes("weakness")) return <AlertCircle className="w-5 h-5" />;
+    if (text.includes("opportunity")) return <Lightbulb className="w-5 h-5" />;
+    if (text.includes("threat") || text.includes("challenge"))
+      return <Flame className="w-5 h-5" />;
+    if (text.includes("market")) return <BarChart3 className="w-5 h-5" />;
+    if (text.includes("target")) return <Target className="w-5 h-5" />;
+    if (text.includes("competitor")) return <Users className="w-5 h-5" />;
+    if (text.includes("benefit")) return <TrendingUp className="w-5 h-5" />;
+    return <ChevronRight className="w-5 h-5" />;
   };
 
   const components = {
-    h1: ({ ...props }: any) => (
-      <h1 className={`text-4xl font-bold ${colors.header} mt-8 mb-6`} {...props} />
+    h1: (props: any) => (
+      <h1 className={`text-4xl font-bold ${colors.header} mt-10 mb-6`} {...props} />
     ),
-    h2: ({ ...props }: any) => (
-      <div className={`mt-8 mb-6 flex items-center gap-3`}>
-        <div className={`w-1 h-10 rounded-full ${colors.accent}`} />
-        <h2 className={`text-3xl font-bold ${colors.header}`} {...props} />
+
+    h2: ({ children }: any) => (
+      <div className="flex items-center gap-4 mt-12 mb-6">
+        <div className={`p-2 rounded-lg ${colors.bg}`}>
+          <Briefcase className={`${colors.icon} w-6 h-6`} />
+        </div>
+        <h2 className={`text-3xl font-bold ${colors.header}`}>{children}</h2>
       </div>
     ),
-    h3: ({ ...props }: any) => (
-      <h3 className={`text-2xl font-semibold ${colors.header} mt-6 mb-4 flex items-center gap-2`}>
-        <div className={`w-2 h-2 rounded-full ${colors.accent}`} />
-        <span {...props} />
-      </h3>
+
+    p: (props: any) => (
+      <p className="text-gray-700 leading-8 mb-4 text-base" {...props} />
     ),
-    h4: ({ ...props }: any) => (
-      <h4 className={`text-lg font-semibold ${colors.header} mt-4 mb-3 italic`} {...props} />
-    ),
-    p: ({ ...props }: any) => (
-      <p className={`${colors.accent.replace('text-', 'text-')} text-gray-700 leading-8 mb-4 text-base`} {...props} />
-    ),
-    ul: ({ ...props }: any) => (
-      <ul className="space-y-3 mb-6 ml-2" {...props} />
-    ),
-    ol: ({ ...props }: any) => (
-      <ol className="space-y-3 mb-6 ml-6 list-decimal text-gray-700" {...props} />
-    ),
-    li: ({ children, ...props }: any) => {
+
+    ul: (props: any) => <ul className="space-y-4 my-6" {...props} />,
+    ol: (props: any) => <ol className="space-y-4 my-6" {...props} />,
+
+    li: ({ children }: any) => {
       const style = getListItemStyle(children);
-      const iconMap = {
-        success: <CheckCircle2 className={`w-5 h-5 text-green-600 flex-shrink-0 mt-0.5`} />,
-        warning: <AlertCircle className={`w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5`} />,
-        error: <AlertCircle className={`w-5 h-5 text-red-600 flex-shrink-0 mt-0.5`} />,
-        default: <ChevronRight className={`w-5 h-5 ${colors.icon} flex-shrink-0 mt-0.5`} />,
-      };
+      const icon = getIcon(children);
 
       const bgMap = {
-        success: 'bg-green-50 border border-green-200',
-        warning: 'bg-amber-50 border border-amber-200',
-        error: 'bg-red-50 border border-red-200',
-        default: '',
+        success: "bg-green-50 border-green-200",
+        warning: "bg-amber-50 border-amber-200",
+        error: "bg-red-50 border-red-200",
+        default: "bg-white border-gray-200",
+      };
+
+      const iconColorMap = {
+        success: "text-green-600",
+        warning: "text-amber-600",
+        error: "text-red-600",
+        default: colors.icon,
       };
 
       return (
-        <li className={`text-gray-700 leading-relaxed flex items-start gap-3 ml-0 p-2 rounded ${bgMap[style as keyof typeof bgMap]}`}>
-          {iconMap[style as keyof typeof iconMap]}
-          <span {...props}>{children}</span>
+        <li
+          className={`${bgMap[style]} border rounded-xl p-4 shadow-sm flex gap-4 items-start hover:shadow-md transition`}
+        >
+          <div className={`${iconColorMap[style]} mt-1`}>{icon}</div>
+          <div className="text-gray-800 leading-relaxed">{children}</div>
         </li>
       );
     },
-    strong: ({ children, ...props }: any) => {
-      const text = extractText(children);
-      let badgeClass = 'bg-gray-200 text-gray-900';
 
-      if (text.includes('Critical') || text.includes('High')) badgeClass = 'bg-red-200 text-red-900';
-      if (text.includes('Opportunity')) badgeClass = 'bg-green-200 text-green-900';
-      if (text.includes('Medium')) badgeClass = 'bg-amber-200 text-amber-900';
+    strong: ({ children }: any) => {
+      const text = extractText(children).toLowerCase();
+      let badge = "bg-gray-100 text-gray-800";
+
+      if (text.includes("high") || text.includes("critical"))
+        badge = "bg-red-100 text-red-700";
+      else if (text.includes("medium"))
+        badge = "bg-amber-100 text-amber-700";
+      else if (text.includes("low"))
+        badge = "bg-green-100 text-green-700";
+      else if (text.includes("opportunity"))
+        badge = "bg-emerald-100 text-emerald-700";
 
       return (
-        <strong className={`font-bold px-2 py-1 rounded inline-block mr-1 ${badgeClass}`} {...props}>
+        <span className={`px-3 py-1 rounded-full text-xs font-bold ${badge}`}>
           {children}
-        </strong>
+        </span>
       );
     },
-    em: ({ ...props }: any) => (
-      <em className={`italic ${colors.accent} font-semibold`} {...props} />
-    ),
-    blockquote: ({ ...props }: any) => {
-      let quoteClass = `border-l-4 ${colors.border} ${colors.bg} px-6 py-4 my-6 rounded-r-lg text-gray-700 italic`;
-      return <blockquote className={quoteClass} {...props} />;
-    },
-    code: ({ inline, children, ...props }: any) => {
-      if (inline) {
-        return (
-          <code className={`${colors.bg} px-2 py-1 rounded ${colors.accent} font-mono text-sm font-semibold`} {...props}>
-            {children}
-          </code>
-        );
+
+    blockquote: ({ children }: any) => {
+      const text = extractText(children).toLowerCase();
+
+      let style = "bg-blue-50 border-blue-200 text-blue-900";
+      let Icon = Lightbulb;
+
+      if (text.includes("risk") || text.includes("warning")) {
+        style = "bg-amber-50 border-amber-200 text-amber-900";
+        Icon = AlertCircle;
       }
+      if (text.includes("critical") || text.includes("danger")) {
+        style = "bg-red-50 border-red-200 text-red-900";
+        Icon = Shield;
+      }
+
       return (
-        <code className="block bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-4 font-mono text-sm" {...props}>
-          {children}
-        </code>
+        <div className={`border-l-4 p-5 rounded-xl my-6 flex gap-4 ${style}`}>
+          <Icon className="w-6 h-6 mt-1" />
+          <div className="italic leading-relaxed">{children}</div>
+        </div>
       );
     },
-    pre: ({ ...props }: any) => (
-      <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-4 font-mono text-sm" {...props} />
-    ),
-    a: ({ ...props }: any) => (
-      <a className={`${colors.accent} hover:opacity-80 underline transition-all font-semibold`} {...props} />
-    ),
-    table: ({ ...props }: any) => (
-      <div className="overflow-x-auto my-6 rounded-lg border border-gray-300">
-        <table className="w-full border-collapse" {...props} />
+
+    table: (props: any) => (
+      <div className="my-10 rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <table className="w-full text-sm" {...props} />
       </div>
     ),
-    thead: ({ ...props }: any) => {
-      const gradientMap = {
-        market: 'from-blue-600 to-blue-700',
-        competition: 'from-emerald-600 to-emerald-700',
-        risk: 'from-amber-600 to-amber-700',
-        default: 'from-gray-600 to-gray-700',
-      };
-      return (
-        <thead className={`bg-gradient-to-r ${gradientMap[section]}`} {...props} />
-      );
-    },
-    th: ({ ...props }: any) => (
-      <th className="px-6 py-3 text-left text-white font-semibold text-sm" {...props} />
+
+    th: (props: any) => (
+      <th
+        className={`px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-white bg-gradient-to-r ${
+          section === "market"
+            ? "from-blue-600 to-blue-700"
+            : section === "competition"
+            ? "from-emerald-600 to-emerald-700"
+            : section === "risk"
+            ? "from-amber-600 to-amber-700"
+            : "from-gray-700 to-gray-800"
+        }`}
+        {...props}
+      />
     ),
-    tbody: ({ ...props }: any) => (
-      <tbody className="divide-y divide-gray-200" {...props} />
+
+    td: (props: any) => (
+      <td className="px-6 py-4 text-gray-700 font-medium border-t" {...props} />
     ),
-    tr: ({ ...props }: any) => (
-      <tr className="hover:bg-gray-50 transition-colors" {...props} />
-    ),
-    td: ({ ...props }: any) => (
-      <td className="px-6 py-4 text-gray-700 text-sm" {...props} />
-    ),
-    hr: ({ ...props }: any) => (
-      <hr className={`my-8 border-t-2 ${colors.border}`} {...props} />
-    ),
+
+    hr: () => <hr className={`my-10 border-t-2 ${colors.border}`} />,
   };
 
   return (
-    <div className="prose-custom max-w-none">
-      <ReactMarkdown components={components}>
-        {content}
-      </ReactMarkdown>
+    <div className="max-w-none">
+<ReactMarkdown
+  remarkPlugins={[remarkGfm]}
+  components={components}
+>
+  {content}
+</ReactMarkdown>
     </div>
   );
 };
